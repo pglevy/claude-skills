@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Higher Education Economic Insights</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1a2332;
+            --secondary: #2c4564;
+            --accent: #d4af37;
+            --accent-dim: #8b7355;
+            --bg: #0f1419;
+            --surface: #1a2332;
+            --text: #e8e6e3;
+            --text-dim: #a8a5a1;
+            --border: rgba(212, 175, 55, 0.15);
+            --success: #4ade80;
+            --warning: #fb923c;
+            --danger: #f87171;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            margin-bottom: 4rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .header .subtitle {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .api-setup {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--secondary) 100%);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .api-setup h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .api-input-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .api-input-group input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .api-input-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            background: var(--accent);
+            color: var(--primary);
+            border: none;
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--accent-dim);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+            animation: slideUp 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .metric-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .metric-card:hover::before {
+            opacity: 1;
+        }
+
+        .metric-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .metric-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-change {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .chart-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            animation: slideUp 0.8s ease-out 0.4s both;
+        }
+
+        .chart-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .chart-description {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-dim);
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .error {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .insight-box {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(212, 175, 55, 0.02) 100%);
+            border-left: 4px solid var(--accent);
+            padding: 2rem;
+            margin-top: 2rem;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .insight-box h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .insight-box p {
+            color: var(--text-dim);
+            line-height: 1.8;
+        }
+
+        canvas {
+            max-height: 400px;
+        }
+
+        .narrative-report {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 3rem;
+            border-radius: 8px;
+            margin-top: 3rem;
+            animation: slideUp 0.8s ease-out 0.6s both;
+        }
+
+        .report-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        .report-meta {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .report-section {
+            margin-bottom: 3rem;
+        }
+
+        .report-section h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            margin-top: 2rem;
+        }
+
+        .report-section h4 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem;
+            color: var(--text);
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .report-section p {
+            color: var(--text-dim);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .report-section ul,
+        .report-section ol {
+            color: var(--text-dim);
+            line-height: 1.8;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .report-section li {
+            margin-bottom: 0.75rem;
+        }
+
+        .report-section strong {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .data-sources {
+            background: rgba(212, 175, 55, 0.03);
+            padding: 2rem;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .data-sources ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .data-sources li {
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .data-sources li::before {
+            content: 'â†’';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        .attribution {
+            font-size: 0.9rem;
+            font-style: italic;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const FREDDashboard = () => {
+            const [apiKey, setApiKey] = useState('');
+            const [isConfigured, setIsConfigured] = useState(false);
+            const [loading, setLoading] = useState(false);
+            const [loadingStatus, setLoadingStatus] = useState('');
+            const [error, setError] = useState(null);
+            const [data, setData] = useState({
+                studentDebt: null,
+                unemployment: null,
+                earnings: null
+            });
+
+            const chartRefs = {
+                debt: useRef(null),
+                unemployment: useRef(null),
+                earnings: useRef(null)
+            };
+
+            const chartInstances = useRef({});
+
+            // FRED series IDs
+            const SERIES = {
+                studentDebt: 'SLOAS',
+                unemployment: {
+                    bachelors: 'LNS14027662',
+                    highSchool: 'LNS14027660',
+                    noHighSchool: 'LNS14027659'
+                },
+                earnings: {
+                    bachelors: 'LEU0252918500A',  // Bachelor's degree and higher, 25 years and over
+                    highSchool: 'LEU0252917300A'   // High School graduates, no college, 25 years and over
+                }
+            };
+
+            const fetchFREDData = async (seriesId) => {
+                // Using CORS proxy for POC - in production, you'd want a backend service
+                const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json&sort_order=desc&limit=100`;
+                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(fredUrl)}`;
+                
+                const response = await fetch(proxyUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch ${seriesId}: ${response.statusText}`);
+                }
+                const data = await response.json();
+                if (data.error_code) {
+                    throw new Error(`FRED API error for ${seriesId}: ${data.error_message}`);
+                }
+                return data;
+            };
+
+            const loadData = async () => {
+                setLoading(true);
+                setLoadingStatus('Loading data from FRED API...');
+                setError(null);
+                
+                try {
+                    // Fetch all data in parallel
+                    const [debtData, unemployBachelors, unemployHS, unemployNoHS, earningsBachelors, earningsHS] = await Promise.all([
+                        fetchFREDData(SERIES.studentDebt),
+                        fetchFREDData(SERIES.unemployment.bachelors),
+                        fetchFREDData(SERIES.unemployment.highSchool),
+                        fetchFREDData(SERIES.unemployment.noHighSchool),
+                        fetchFREDData(SERIES.earnings.bachelors),
+                        fetchFREDData(SERIES.earnings.highSchool)
+                    ]);
+
+                    setData({
+                        studentDebt: debtData.observations.reverse(),
+                        unemployment: {
+                            bachelors: unemployBachelors.observations.reverse(),
+                            highSchool: unemployHS.observations.reverse(),
+                            noHighSchool: unemployNoHS.observations.reverse()
+                        },
+                        earnings: {
+                            bachelors: earningsBachelors.observations.reverse(),
+                            highSchool: earningsHS.observations.reverse()
+                        }
+                    });
+
+                    setIsConfigured(true);
+                    setLoadingStatus('');
+                } catch (err) {
+                    setLoadingStatus('');
+                    setError(`${err.message}. Please check your API key and try again.`);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            useEffect(() => {
+                if (!data.studentDebt) return;
+
+                // Destroy existing charts
+                Object.values(chartInstances.current).forEach(chart => chart?.destroy());
+
+                // Student Debt Chart
+                if (chartRefs.debt.current) {
+                    const ctx = chartRefs.debt.current.getContext('2d');
+                    const recentDebt = data.studentDebt.slice(-60); // Last 5 years
+                    
+                    chartInstances.current.debt = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: recentDebt.map(d => d.date),
+                            datasets: [{
+                                label: 'Total Student Debt (Billions)',
+                                data: recentDebt.map(d => parseFloat(d.value) / 1000),
+                                borderColor: '#d4af37',
+                                backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                                borderWidth: 3,
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 0,
+                                pointHoverRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: '#1a2332',
+                                    titleColor: '#d4af37',
+                                    bodyColor: '#e8e6e3',
+                                    borderColor: '#d4af37',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    displayColors: false,
+                                    callbacks: {
+                                        label: (context) => `$${context.parsed.y.toFixed(0)}B`
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: 'rgba(212, 175, 55, 0.05)' },
+                                    ticks: { 
+                                        color: '#a8a5a1',
+                                        maxTicksLimit: 8
+                                    }
+                                },
+                                y: {
+                                    grid: { color: 'rgba(212, 175, 55, 0.05)' },
+                                    ticks: { 
+                                        color: '#a8a5a1',
+                                        callback: (value) => `$${value}B`
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Unemployment Chart
+                if (chartRefs.unemployment.current) {
+                    const ctx = chartRefs.unemployment.current.getContext('2d');
+                    const recent = data.unemployment.bachelors.slice(-60);
+                    
+                    chartInstances.current.unemployment = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: recent.map(d => d.date),
+                            datasets: [
+                                {
+                                    label: "Bachelor's Degree+",
+                                    data: recent.map((d, i) => parseFloat(data.unemployment.bachelors.slice(-60)[i].value)),
+                                    borderColor: '#4ade80',
+                                    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                                    borderWidth: 3,
+                                    tension: 0.4,
+                                    pointRadius: 0
+                                },
+                                {
+                                    label: 'High School Only',
+                                    data: recent.map((d, i) => parseFloat(data.unemployment.highSchool.slice(-60)[i].value)),
+                                    borderColor: '#fb923c',
+                                    backgroundColor: 'rgba(251, 146, 60, 0.1)',
+                                    borderWidth: 3,
+                                    tension: 0.4,
+                                    pointRadius: 0
+                                },
+                                {
+                                    label: 'No High School',
+                                    data: recent.map((d, i) => parseFloat(data.unemployment.noHighSchool.slice(-60)[i].value)),
+                                    borderColor: '#f87171',
+                                    backgroundColor: 'rgba(248, 113, 113, 0.1)',
+                                    borderWidth: 3,
+                                    tension: 0.4,
+                                    pointRadius: 0
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        color: '#e8e6e3',
+                                        font: { size: 12, family: 'IBM Plex Mono' },
+                                        padding: 15,
+                                        usePointStyle: true
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: '#1a2332',
+                                    titleColor: '#d4af37',
+                                    bodyColor: '#e8e6e3',
+                                    borderColor: '#d4af37',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    callbacks: {
+                                        label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(1)}%`
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: 'rgba(212, 175, 55, 0.05)' },
+                                    ticks: { 
+                                        color: '#a8a5a1',
+                                        maxTicksLimit: 8
+                                    }
+                                },
+                                y: {
+                                    grid: { color: 'rgba(212, 175, 55, 0.05)' },
+                                    ticks: { 
+                                        color: '#a8a5a1',
+                                        callback: (value) => `${value}%`
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Earnings Chart
+                if (chartRefs.earnings.current) {
+                    const ctx = chartRefs.earnings.current.getContext('2d');
+                    const recent = data.earnings.bachelors.slice(-20); // Annual data
+                    
+                    chartInstances.current.earnings = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: recent.map(d => d.date.substring(0, 4)),
+                            datasets: [
+                                {
+                                    label: "Bachelor's Degree+",
+                                    data: recent.map((d, i) => parseFloat(data.earnings.bachelors.slice(-20)[i].value)),
+                                    backgroundColor: 'rgba(74, 222, 128, 0.8)',
+                                    borderColor: '#4ade80',
+                                    borderWidth: 2
+                                },
+                                {
+                                    label: 'High School Only',
+                                    data: recent.map((d, i) => parseFloat(data.earnings.highSchool.slice(-20)[i].value)),
+                                    backgroundColor: 'rgba(251, 146, 60, 0.8)',
+                                    borderColor: '#fb923c',
+                                    borderWidth: 2
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        color: '#e8e6e3',
+                                        font: { size: 12, family: 'IBM Plex Mono' },
+                                        padding: 15,
+                                        usePointStyle: true
+                                    }
+                                },
+                                tooltip: {
+                                    backgroundColor: '#1a2332',
+                                    titleColor: '#d4af37',
+                                    bodyColor: '#e8e6e3',
+                                    borderColor: '#d4af37',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    callbacks: {
+                                        label: (context) => `${context.dataset.label}: $${context.parsed.y}`
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: 'rgba(212, 175, 55, 0.05)' },
+                                    ticks: { color: '#a8a5a1' }
+                                },
+                                y: {
+                                    grid: { color: 'rgba(212, 175, 55, 0.05)' },
+                                    ticks: { 
+                                        color: '#a8a5a1',
+                                        callback: (value) => `$${value}`
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                return () => {
+                    Object.values(chartInstances.current).forEach(chart => chart?.destroy());
+                };
+            }, [data]);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (apiKey.trim()) {
+                    loadData();
+                }
+            };
+
+            const getMetrics = () => {
+                if (!data.studentDebt || !data.unemployment || !data.earnings) return null;
+
+                const latestDebt = data.studentDebt[data.studentDebt.length - 1];
+                const prevDebt = data.studentDebt[data.studentDebt.length - 13]; // Year ago
+                const debtChange = ((parseFloat(latestDebt.value) - parseFloat(prevDebt.value)) / parseFloat(prevDebt.value) * 100).toFixed(1);
+
+                const latestUnemployBachelors = data.unemployment.bachelors[data.unemployment.bachelors.length - 1];
+                const latestUnemployHS = data.unemployment.highSchool[data.unemployment.highSchool.length - 1];
+
+                const latestEarningsBachelors = data.earnings.bachelors[data.earnings.bachelors.length - 1];
+                const latestEarningsHS = data.earnings.highSchool[data.earnings.highSchool.length - 1];
+                const earningsPremium = ((parseFloat(latestEarningsBachelors.value) / parseFloat(latestEarningsHS.value) - 1) * 100).toFixed(0);
+
+                return {
+                    debt: {
+                        value: `$${(parseFloat(latestDebt.value) / 1000000).toFixed(2)}T`,
+                        change: `${debtChange > 0 ? '+' : ''}${debtChange}% from last year`
+                    },
+                    unemployment: {
+                        value: `${parseFloat(latestUnemployBachelors.value).toFixed(1)}%`,
+                        change: `vs ${parseFloat(latestUnemployHS.value).toFixed(1)}% for HS only`
+                    },
+                    premium: {
+                        value: `+${earningsPremium}%`,
+                        change: `Bachelor's earnings premium`
+                    }
+                };
+            };
+
+            const metrics = getMetrics();
+
+            return (
+                <div className="dashboard">
+                    <header className="header">
+                        <h1>Higher Education Economic Insights</h1>
+                        <p className="subtitle">Federal Reserve Economic Data Â· Real-Time Analysis</p>
+                    </header>
+
+                    {!isConfigured && (
+                        <div className="api-setup">
+                            <h2>Configure FRED API Access</h2>
+                            <p style={{color: 'var(--text-dim)', marginBottom: '1.5rem'}}>
+                                Enter your FRED API key to load live economic data. Get your free key at 
+                                <a href="https://fred.stlouisfed.org/docs/api/api_key.html" 
+                                   target="_blank" 
+                                   style={{color: 'var(--accent)', marginLeft: '0.5rem'}}>
+                                    fred.stlouisfed.org
+                                </a>
+                            </p>
+                            <p style={{color: 'var(--text-dim)', fontSize: '0.85rem', marginBottom: '1.5rem', fontStyle: 'italic'}}>
+                                Note: This POC uses a CORS proxy (corsproxy.io) for client-side API access. 
+                                For production, you'd want to use a backend service to make FRED API calls.
+                            </p>
+                            <form onSubmit={handleSubmit} className="api-input-group">
+                                <input 
+                                    type="text"
+                                    value={apiKey}
+                                    onChange={(e) => setApiKey(e.target.value)}
+                                    placeholder="Enter your FRED API key"
+                                />
+                                <button type="submit" className="btn" disabled={loading}>
+                                    {loading ? 'Loading...' : 'Load Data'}
+                                </button>
+                            </form>
+                        </div>
+                    )}
+
+                    {error && <div className="error">{error}</div>}
+
+                    {loading && !data.studentDebt && (
+                        <div className="loading">{loadingStatus || 'Loading economic data from FRED'}</div>
+                    )}
+
+                    {metrics && (
+                        <>
+                            <div className="metrics-grid">
+                                <div className="metric-card">
+                                    <div className="metric-label">Total Student Debt</div>
+                                    <div className="metric-value">{metrics.debt.value}</div>
+                                    <div className="metric-change">{metrics.debt.change}</div>
+                                </div>
+                                <div className="metric-card">
+                                    <div className="metric-label">Unemployment (Bachelor's+)</div>
+                                    <div className="metric-value">{metrics.unemployment.value}</div>
+                                    <div className="metric-change">{metrics.unemployment.change}</div>
+                                </div>
+                                <div className="metric-card">
+                                    <div className="metric-label">Earnings Advantage</div>
+                                    <div className="metric-value">{metrics.premium.value}</div>
+                                    <div className="metric-change">{metrics.premium.change}</div>
+                                </div>
+                            </div>
+
+                            <div className="chart-container">
+                                <h2 className="chart-title">Student Loan Debt Trajectory</h2>
+                                <p className="chart-description">
+                                    Total outstanding student loan debt in the United States. This represents the combined burden 
+                                    carried by current and former students, a critical context for institutional financial aid policy.
+                                </p>
+                                <canvas ref={chartRefs.debt}></canvas>
+                            </div>
+
+                            <div className="chart-container">
+                                <h2 className="chart-title">Unemployment Rates by Educational Attainment</h2>
+                                <p className="chart-description">
+                                    The unemployment differential clearly demonstrates the economic value proposition of higher education. 
+                                    Bachelor's degree holders consistently experience significantly lower unemployment rates.
+                                </p>
+                                <canvas ref={chartRefs.unemployment}></canvas>
+                                <div className="insight-box">
+                                    <h3>Key Insight</h3>
+                                    <p>
+                                        Higher education serves as a powerful economic stabilizer. Even during economic downturns, 
+                                        individuals with bachelor's degrees experience unemployment rates roughly half those of 
+                                        high school-only graduates, providing a compelling value narrative for prospective students.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="chart-container">
+                                <h2 className="chart-title">Median Weekly Earnings Comparison</h2>
+                                <p className="chart-description">
+                                    Annual median weekly earnings by educational attainment level. The earnings premium for 
+                                    bachelor's degree holders has remained substantial and consistent over time.
+                                </p>
+                                <canvas ref={chartRefs.earnings}></canvas>
+                                <div className="insight-box">
+                                    <h3>The ROI Perspective</h3>
+                                    <p>
+                                        With bachelor's degree holders earning approximately {metrics.premium.value} more than 
+                                        high school graduates, the lifetime earnings differential substantially exceeds typical 
+                                        student loan burdens. This data provides institutions with powerful evidence for student 
+                                        recruitment and retention communications.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="narrative-report">
+                                <h2 className="report-title">Higher Education Economic Value: A Data-Driven Perspective</h2>
+                                <p className="report-meta">Federal Reserve Economic Data Analysis Â· Prepared for Institutional Stakeholders</p>
+
+                                <section className="report-section">
+                                    <h3>Executive Summary</h3>
+                                    <p>
+                                        This analysis examines three critical economic indicators that demonstrate the value proposition 
+                                        of higher education: student loan debt levels, unemployment rates by educational attainment, and 
+                                        earnings differentials. The data reveals that despite rising student debt levels, the economic 
+                                        returns to higher education remain substantial and provide a compelling case for continued 
+                                        investment in degree attainment.
+                                    </p>
+                                </section>
+
+                                <section className="report-section">
+                                    <h3>Key Findings</h3>
+                                    
+                                    <h4>The Debt Context</h4>
+                                    <p>
+                                        Total outstanding student loan debt in the United States has grown significantly over the past 
+                                        two decades, currently exceeding $1.6 trillion. This represents a substantial financial burden 
+                                        that rightfully concerns prospective students, current borrowers, and policymakers alike. However, 
+                                        understanding this figure in isolation provides an incomplete picture of higher education's 
+                                        economic value.
+                                    </p>
+
+                                    <h4>The Employment Advantage</h4>
+                                    <p>
+                                        Labor market data consistently demonstrates that higher education serves as a powerful employment 
+                                        stabilizer. Individuals with bachelor's degrees experience unemployment rates that are roughly half 
+                                        those of high school-only graduates. This differential persists across economic cycles, including 
+                                        during recessions when the protective effect of higher education becomes even more pronounced.
+                                    </p>
+                                    <p>
+                                        During economic downturns, degree holders demonstrate greater labor market resilience. This 
+                                        stability provides not only economic security but also career mobility and advancement 
+                                        opportunities that compound over time.
+                                    </p>
+
+                                    <h4>The Earnings Premium</h4>
+                                    <p>
+                                        Perhaps most compelling from an ROI perspective is the persistent earnings advantage enjoyed by 
+                                        bachelor's degree holders. Current data shows degree holders earning approximately 70-80% more 
+                                        than those with only a high school diploma, translating to hundreds of thousands of dollars over 
+                                        a career lifetime.
+                                    </p>
+                                    <p>
+                                        This premium has remained remarkably stable over time, suggesting that the economic value of higher 
+                                        education is durable rather than a temporary market phenomenon. When compared against typical student 
+                                        debt loads, the lifetime earnings differential substantially exceeds the cost of borrowing, even 
+                                        accounting for interest.
+                                    </p>
+                                </section>
+
+                                <section className="report-section">
+                                    <h3>Strategic Implications for Institutions</h3>
+
+                                    <h4>For Student Recruitment</h4>
+                                    <p>
+                                        These economic indicators provide powerful evidence for recruitment communications. Prospective 
+                                        students and families making enrollment decisions benefit from clear, data-driven presentations of 
+                                        higher education's value proposition. The unemployment and earnings differentials offer concrete 
+                                        metrics that transcend abstract discussions of educational value.
+                                    </p>
+
+                                    <h4>For Retention Efforts</h4>
+                                    <p>
+                                        Current students facing financial stress or questioning their educational investment can be supported 
+                                        with evidence-based context about long-term outcomes. Understanding that degree completion dramatically 
+                                        improves labor market prospects can help students persist through challenging semesters.
+                                    </p>
+
+                                    <h4>For Financial Aid Policy</h4>
+                                    <p>
+                                        The relationship between debt levels and earnings outcomes should inform institutional financial aid 
+                                        strategies. While minimizing student debt remains important, the data suggests that reasonable 
+                                        borrowing for degree completion yields strong returns. Financial aid communications can help students 
+                                        and families understand manageable debt levels in the context of expected earnings.
+                                    </p>
+
+                                    <h4>For Advocacy and Policy</h4>
+                                    <p>
+                                        When engaging with policymakers, trustees, or community stakeholders, these economic indicators provide 
+                                        objective evidence of higher education's societal value. The employment stability and earnings mobility 
+                                        facilitated by degree attainment represent significant public goods that extend beyond individual benefits.
+                                    </p>
+                                </section>
+
+                                <section className="report-section">
+                                    <h3>Data Transparency and Limitations</h3>
+                                    <p>
+                                        This analysis draws on Federal Reserve Economic Data (FRED), which aggregates information from multiple 
+                                        federal statistical agencies including the Bureau of Labor Statistics and Department of Education. The 
+                                        data represents national averages and aggregate trends.
+                                    </p>
+                                    <p><strong>Important caveats:</strong></p>
+                                    <ul>
+                                        <li>Outcomes vary significantly by field of study, institution type, and individual circumstances</li>
+                                        <li>Correlation does not imply causation; degree holders may differ in unmeasured ways from non-degree holders</li>
+                                        <li>Past performance does not guarantee future results; labor market conditions evolve</li>
+                                        <li>Data represents median outcomes; individual experiences vary widely</li>
+                                    </ul>
+                                </section>
+
+                                <section className="report-section">
+                                    <h3>Recommendations</h3>
+                                    <ol>
+                                        <li><strong>Integrate economic data into institutional communications:</strong> Use FRED and similar sources to provide evidence-based context in recruitment materials, student success programming, and external relations.</li>
+                                        <li><strong>Develop field-specific analyses:</strong> Disaggregate national data by academic program to provide more targeted guidance to students making major selection decisions.</li>
+                                        <li><strong>Monitor trends over time:</strong> Establish regular review of economic indicators to identify emerging patterns and adjust institutional strategies accordingly.</li>
+                                        <li><strong>Contextualize debt in relation to outcomes:</strong> Help students and families understand reasonable borrowing in the context of expected earnings rather than presenting debt figures in isolation.</li>
+                                        <li><strong>Strengthen completion initiatives:</strong> Given the stark outcomes differential between degree holders and non-completers, prioritize programs that support students through graduation.</li>
+                                    </ol>
+                                </section>
+
+                                <section className="report-section">
+                                    <h3>Conclusion</h3>
+                                    <p>
+                                        The economic case for higher education remains robust. While student debt levels deserve serious 
+                                        attention and institutions must continue working to improve affordability, the data clearly demonstrates 
+                                        that degree attainment provides substantial labor market advantages. Unemployment rates roughly half those 
+                                        of high school graduates combined with earnings premiums of 70-80% create a compelling ROI that 
+                                        substantially exceeds typical borrowing costs.
+                                    </p>
+                                    <p>
+                                        For institutional leaders, these economic indicators provide valuable tools for strategic communication, 
+                                        policy development, and student support. By grounding higher education's value proposition in objective 
+                                        economic data, institutions can have more productive conversations with students, families, policymakers, 
+                                        and the broader public about the enduring importance of degree attainment.
+                                    </p>
+                                </section>
+
+                                <section className="report-section data-sources">
+                                    <h3>Data Sources</h3>
+                                    <ul>
+                                        <li><strong>Student Loan Debt:</strong> FRED Series SLOAS (Student Loans Owned and Securitized, Outstanding)</li>
+                                        <li><strong>Unemployment Rates:</strong> FRED Series LNS14027662 (Bachelor's+), LNS14027660 (High School), LNS14027659 (No High School)</li>
+                                        <li><strong>Earnings Data:</strong> FRED Series LEU0252918500A (Bachelor's degree and higher, 25+), LEU0252917300A (High School graduates, no college, 25+)</li>
+                                    </ul>
+                                    <p className="attribution">All data accessed via the Federal Reserve Bank of St. Louis FRED API.</p>
+                                </section>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<FREDDashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html>
