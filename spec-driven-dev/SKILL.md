@@ -129,8 +129,10 @@ Break down the work into discrete, trackable tasks with clear outcomes.
 Follow this progression when building features:
 
 ```
-Requirements → Design → Implementation Planning → Execution
+Requirements → [USER APPROVAL] → Design → [USER APPROVAL] → Implementation Planning → [USER APPROVAL] → Execution
 ```
+
+**CRITICAL: User approval is required at the end of each phase before proceeding to the next phase.**
 
 ### Phase 1: Requirements
 
@@ -144,6 +146,8 @@ Requirements → Design → Implementation Planning → Execution
 - Propose concrete examples
 - Identify edge cases
 - Validate with stakeholders
+
+**⚠️ APPROVAL GATE: After completing requirements.md, present it to the user and wait for explicit approval before proceeding to design. Do not start design work until the user approves the requirements.**
 
 ### Phase 2: Design
 
@@ -159,6 +163,8 @@ Requirements → Design → Implementation Planning → Execution
 - Include diagrams for complex interactions
 - Reference specific requirements being addressed
 
+**⚠️ APPROVAL GATE: After completing design.md, present it to the user and wait for explicit approval before proceeding to implementation planning. Do not create tasks until the user approves the design.**
+
 ### Phase 3: Implementation Planning
 
 1. Break design into discrete tasks
@@ -173,12 +179,16 @@ Requirements → Design → Implementation Planning → Execution
 - Clear completion criteria
 - 1-4 hours of work per task
 
+**⚠️ APPROVAL GATE: After completing tasks.md, present the implementation plan to the user and wait for explicit approval before proceeding to execution. Do not start coding until the user approves the task breakdown.**
+
 ### Phase 4: Execution
 
 1. Work through tasks sequentially
 2. Mark tasks as in-progress or completed
 3. Update specs if requirements change
 4. Validate implementation against requirements
+
+**Note: During execution, if significant deviations from the approved specs are needed, pause and get user approval for the changes before proceeding.**
 
 ## Property-Based Testing for Correctness
 
